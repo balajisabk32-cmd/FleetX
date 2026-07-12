@@ -29,18 +29,50 @@ model User {
   role         Role     @relation(fields: [roleId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  auditLogs    AuditLog[]
 }
 
 model Vehicle {
-  id                 Int      @id @default(autoincrement())
-  registrationNumber String   @unique
-  make               String
-  model              String
-  year               Int
-  capacity           Float    // Cargo capacity
-  status             String   // Available, On Trip, In Shop
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                   Int        @id @default(autoincrement())
+  registrationNumber   String     @unique
+  make                 String
+  model                String
+  year                 Int
+  capacity             Float      // Cargo capacity
+  status               String     // Available, On Trip, In Shop
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  documents            Document[]
+
+  // Expiration Tracking
+  insuranceExpiry      DateTime?
+  insuranceAlertLevel  Int        @default(0) // 0=None, 1=60days, 2=30days, 3=7days, 4=Expired
+
+  emissionsExpiry      DateTime?
+  emissionsAlertLevel  Int        @default(0)
+
+  inspectionExpiry     DateTime?
+  inspectionAlertLevel Int        @default(0)
+}
+
+model Document {
+  id          Int        @id @default(autoincrement())
+  vehicleId   Int
+  vehicle     Vehicle    @relation(fields: [vehicleId], references: [id])
+  type        String     // RC, Insurance, Tax Receipt, Other
+  fileUrl     String
+  uploadedAt  DateTime   @default(now())
+  auditLogs   AuditLog[]
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  documentId  Int
+  document    Document @relation(fields: [documentId], references: [id])
+  action      String   // VIEW, DOWNLOAD, UPDATE
+  timestamp   DateTime @default(now())
 }
 
 model Driver {
@@ -49,6 +81,15 @@ model Driver {
   licenseNumber     String   @unique
   licenseExpiryDate DateTime
   status            String   // Available, On Trip, Suspended
+  capabilityFlag    String   @default("Active") // Active, Expiring Soon, Expired
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  type      String   // e.g., "WARNING", "INFO"
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

@@ -114,9 +114,9 @@ export const login = async (req: Request, res: Response) => {
       message: 'Logged in successfully',
       user: { id: user.id, name: user.name, email: user.email, role: user.role.name }
     });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error during login' });
+  } catch (error: any) {
+    console.log('Login error:', error);
+    res.status(500).json({ error: 'Internal server error during login: ' + error.message });
   }
 };
 

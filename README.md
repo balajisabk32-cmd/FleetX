@@ -6,14 +6,117 @@
 
 ---
 
-## 1. Business Context
+## Trip Management (Module 3.5) & Maintenance (Module 3.6)
 
+This sub-module implements Trip Management and Maintenance using **Node.js, TypeScript, Express, and Supabase**. It uses a strict `snake_case` schema as requested, and features advanced Maintenance tracking (priorities, mechanic assignments, cost tracking).
+
+### Setup Instructions
+
+#### 1. Supabase Database Configuration
+Since we shifted to strict snake_case and added several new fields, **you must completely drop your old tables and run this new script** in your Supabase SQL Editor.
+
+```sql
+-- 1. Drop existing tables if they exist
+DROP TABLE IF EXISTS maintenance CASCADE;
+DROP TABLE IF EXISTS trips CASCADE;
+DROP TABLE IF EXISTS vehicles CASCADE;
+DROP TABLE IF EXISTS drivers CASCADE;
+
+-- 2. Create Vehicles Table (Updated Schema)
+CREATE TABLE vehicles (
+    id SERIAL PRIMARY KEY,
+    registration_number VARCHAR(255) UNIQUE NOT NULL,
+    vehicle_name VARCHAR(255) NOT NULL,
+    vehicle_type VARCHAR(255) NOT NULL,
+    maximum_load_capacity DECIMAL(10, 2) NOT NULL CHECK (maximum_load_capacity > 0),
+    status VARCHAR(50) NOT NULL DEFAULT 'AVAILABLE',
+    service_score INT NOT NULL DEFAULT 100
+);
+
+-- 3. Create Drivers Table (Updated Schema)
+CREATE TABLE drivers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    license_number VARCHAR(255) UNIQUE NOT NULL,
+    license_expiry DATE NOT NULL,
+    contact_number VARCHAR(255),
+    status VARCHAR(50) NOT NULL DEFAULT 'AVAILABLE'
+);
+
+-- 4. Create Trips Table (Updated Schema)
+CREATE TABLE trips (
+    id SERIAL PRIMARY KEY,
+    trip_number VARCHAR(255) NOT NULL,
+    vehicle_id INT NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+    driver_id INT NOT NULL REFERENCES drivers(id) ON DELETE CASCADE,
+    source VARCHAR(255) NOT NULL,
+    destination VARCHAR(255) NOT NULL,
+    cargo_weight DECIMAL(10, 2) NOT NULL CHECK (cargo_weight > 0),
+    planned_distance DECIMAL(10, 2) NOT NULL CHECK (planned_distance > 0),
+    estimated_travel_time DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    estimated_arrival_time TIMESTAMP,
+    status VARCHAR(50) NOT NULL DEFAULT 'DRAFT',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    dispatch_time TIMESTAMP,
+    completed_time TIMESTAMP
+);
+
+-- 5. Create Maintenance Table (Advanced Features)
+CREATE TABLE maintenance (
+    id SERIAL PRIMARY KEY,
+    vehicle_id INT NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+    issue VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    maintenance_type VARCHAR(100) NOT NULL,
+    priority VARCHAR(50) NOT NULL,
+    estimated_cost DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    actual_cost DECIMAL(10, 2),
+    mechanic_name VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'OPEN',
+    opened_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    closed_at TIMESTAMP,
+    notes TEXT
+);
+
+-- 6. Disable RLS for testing
+ALTER TABLE vehicles DISABLE ROW LEVEL SECURITY;
+ALTER TABLE drivers DISABLE ROW LEVEL SECURITY;
+ALTER TABLE trips DISABLE ROW LEVEL SECURITY;
+ALTER TABLE maintenance DISABLE ROW LEVEL SECURITY;
+
+-- 7. Insert Dummy Seed Data
+INSERT INTO vehicles (registration_number, vehicle_name, vehicle_type, maximum_load_capacity, status, service_score) VALUES
+('TRK-001', 'Volvo FH16', 'Heavy Truck', 20000, 'AVAILABLE', 100),
+('TRK-002', 'Scania R500', 'Heavy Truck', 18000, 'AVAILABLE', 100),
+('TRK-003', 'Mercedes Sprinter', 'Van', 3000, 'AVAILABLE', 100);
+
+INSERT INTO drivers (name, license_number, license_expiry, contact_number, status) VALUES
+('John Doe', 'LIC-1001', '2030-12-31', '555-0101', 'AVAILABLE'),
+('Jane Smith', 'LIC-1002', '2028-05-15', '555-0102', 'AVAILABLE'),
+('Mike Johnson', 'LIC-1003', '2022-01-01', '555-0103', 'AVAILABLE');
+
+NOTIFY pgrst, 'reload schema';
+```
+
+#### 2. Environment Variables
+Your `.env` file is already configured properly.
+
+#### 3. Run the Application
+Start the TypeScript development server:
+```bash
+npm run dev
+```
+
+Visit the testing dashboard at `http://localhost:8080`.
+
+---
+
+## 1. Business Context
 Many logistics companies still rely on spreadsheets and manual logbooks to manage their transport operations. This often leads to scheduling conflicts, underutilized vehicles, missed maintenance, expired driver licenses, inaccurate expense tracking, and poor operational visibility.
 
 Your task is to build FleetX, a centralized platform that allows organizations to manage the complete lifecycle of their transport operations—from vehicle registration and driver management to dispatching, maintenance, fuel logging, and analytics.
 
 ## 2. Target Users
-
 - **Fleet Manager:** Oversees fleet assets, maintenance, vehicle lifecycle, and operational efficiency.
 - **Driver:** Creates trips, assigns vehicles and drivers, and monitors active deliveries.
 - **Safety Officer:** Ensures driver compliance, tracks license validity, and monitors safety scores.
@@ -55,7 +158,6 @@ Your task is to build FleetX, a centralized platform that allows organizations t
 - Support CSV export; PDF export is optional.
 
 ## 4. Mandatory Business Rules
-
 - The vehicle registration number must be unique.
 - Retired or `In Shop` vehicles must never appear in the dispatch selection.
 - Drivers with expired licenses or `Suspended` status cannot be assigned to trips.
@@ -67,24 +169,10 @@ Your task is to build FleetX, a centralized platform that allows organizations t
 - Creating an active maintenance record automatically changes vehicle status to `In Shop`.
 - Closing maintenance restores the vehicle to `Available` (unless retired).
 
-## 5. Example Workflow
-
-1. **Step 1:** Register a vehicle 'Van-05' with a maximum capacity of 500 kg. Status = `Available`.
-2. **Step 2:** Register driver 'Alex' with a valid driving license.
-3. **Step 3:** Create a trip with Cargo Weight = 450 kg.
-4. **Step 4:** System validates that 450 kg ≤ 500 kg and allows dispatch.
-5. **Step 5:** Vehicle and Driver status automatically become `On Trip`.
-6. **Step 6:** Complete the trip by entering the final odometer and fuel consumed.
-7. **Step 7:** System marks both Vehicle and Driver as `Available`.
-8. **Step 8:** Create a maintenance record (e.g., Oil Change). Vehicle status automatically becomes `In Shop` and is hidden from dispatch.
-9. **Step 9:** Reports update operational cost and fuel efficiency based on the latest trip and fuel log.
-
-## 6. Expected Database Entities
-
+## 5. Expected Database Entities
 - Users, Roles, Vehicles, Drivers, Trips, Maintenance Logs, Fuel Logs, Expenses
 
-## 7. Mandatory Deliverables
-
+## 6. Mandatory Deliverables
 - Responsive web interface
 - Authentication with RBAC
 - CRUD for Vehicles and Drivers
@@ -94,15 +182,5 @@ Your task is to build FleetX, a centralized platform that allows organizations t
 - Fuel & Expense tracking
 - Dashboard with KPIs
 
-## 8. Bonus Features
-
-- Charts and visual analytics
-- PDF export
-- Email reminders for expiring licenses
-- Vehicle document management
-- Search, filters, and sorting
-- Dark mode
-
 ---
-
 **Mockup:** [View on Excalidraw](https://link.excalidraw.com/l/65VNwvy7c4X/1FHGDNgD2td)

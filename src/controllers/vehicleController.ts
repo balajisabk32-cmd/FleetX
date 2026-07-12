@@ -50,7 +50,10 @@ export const getVehicleById = async (req: Request, res: Response, next: NextFunc
 export const updateVehicle = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const { make, model, year, capacity, status } = req.body;
+    const { 
+      make, model, year, capacity, status, 
+      insuranceExpiry, emissionsExpiry, inspectionExpiry 
+    } = req.body;
 
     const dataToUpdate: any = {};
     if (make) dataToUpdate.make = make;
@@ -58,6 +61,15 @@ export const updateVehicle = async (req: Request, res: Response, next: NextFunct
     if (year) dataToUpdate.year = Number(year);
     if (capacity !== undefined) dataToUpdate.capacity = Number(capacity);
     if (status) dataToUpdate.status = status;
+    
+    if (insuranceExpiry) dataToUpdate.insuranceExpiry = new Date(insuranceExpiry);
+    if (emissionsExpiry) dataToUpdate.emissionsExpiry = new Date(emissionsExpiry);
+    if (inspectionExpiry) dataToUpdate.inspectionExpiry = new Date(inspectionExpiry);
+
+    // If a date is updated, we should reset its corresponding alert level so the warning fires again!
+    if (insuranceExpiry) dataToUpdate.insuranceAlertLevel = 0;
+    if (emissionsExpiry) dataToUpdate.emissionsAlertLevel = 0;
+    if (inspectionExpiry) dataToUpdate.inspectionAlertLevel = 0;
 
     const vehicle = await prisma.vehicle.update({
       where: { id: Number(id) },
