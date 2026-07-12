@@ -4,7 +4,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { 
   Wrench, CheckCircle, Warning, Plus, XCircle, 
-  CarProfile, ShieldCheck, CurrencyDollar
+  ShieldCheck, CurrencyDollar
 } from '@phosphor-icons/react';
 import { Button } from '../../components/ui/button';
 
@@ -134,7 +134,7 @@ export default function MaintenancePage() {
   }
 
   return (
-    <div ref={pageRef} className="w-full h-full flex flex-col relative overflow-hidden">
+    <div ref={pageRef} className="w-full pb-16 flex flex-col relative">
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 dash-title">
         <div>
@@ -144,9 +144,12 @@ export default function MaintenancePage() {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">Maintenance Bay</h1>
         </div>
         
-        <Button onClick={() => setShowForm(true)} className="rounded-full h-10 mt-4 md:mt-0">
-          <Plus className="mr-2" /> New Ticket
-        </Button>
+        <button 
+          onClick={() => setShowForm(true)} 
+          className="rounded-full h-11 bg-primary hover:bg-primary-hover text-white font-semibold flex items-center gap-2 px-6 transition-all duration-300 active:scale-95 shadow-[0_4px_20px_rgba(59,130,246,0.25)] hover:shadow-[0_4px_25px_rgba(59,130,246,0.4)] mt-4 md:mt-0"
+        >
+          <Plus size={18} /> New Ticket
+        </button>
       </div>
 
       {reminders.length > 0 && (
@@ -158,10 +161,10 @@ export default function MaintenancePage() {
               {reminders.map(v => (
                 <div key={v.id} className="bg-[#050505] p-3 rounded-xl border border-white/5 shrink-0 w-64">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-sm">{v.registration_number}</span>
+                    <span className="font-bold text-sm">{v.vehicle_name}</span>
                     <span className={`text-xs font-bold ${v.service_score < 70 ? 'text-danger' : 'text-warning'}`}>Score: {v.service_score}</span>
                   </div>
-                  <p className="text-xs text-white/50 truncate">{v.reason}</p>
+                  <p className="text-xs text-white/50 truncate">{v.reminder_status}</p>
                 </div>
               ))}
             </div>
@@ -217,7 +220,7 @@ export default function MaintenancePage() {
                    {/* Action Buttons based on status */}
                    <div className="mt-4 pt-4 border-t border-white/5 flex justify-end gap-2">
                      {record.status === 'OPEN' && (
-                       <Button size="sm" className="h-8 text-xs bg-white text-black hover:bg-white/90 w-full" onClick={() => closeRecord(record.id)}>
+                       <Button size="sm" className="h-8 text-xs bg-primary text-white hover:bg-primary/95 w-full" onClick={() => closeRecord(record.id)}>
                          <CheckCircle className="mr-1" /> Close Ticket
                        </Button>
                      )}
@@ -240,7 +243,7 @@ export default function MaintenancePage() {
         {showForm && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-end"
           >
             <motion.div 
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
@@ -263,7 +266,7 @@ export default function MaintenancePage() {
                   >
                     <option value="" disabled className="bg-[#0a0a0a]">-- Select Vehicle --</option>
                     {vehicles.map(v => (
-                      <option key={v.id} value={v.id} className="bg-[#0a0a0a]">{v.registration_number} ({v.status})</option>
+                      <option key={v.id} value={v.id} className="bg-[#0a0a0a]">{v.registrationNumber} ({v.status})</option>
                     ))}
                   </select>
                 </div>

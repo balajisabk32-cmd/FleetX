@@ -13,6 +13,10 @@ import notificationRoutes from './routes/notificationRoutes';
 import documentRoutes from './routes/documentRoutes';
 import tripRoutes from './routes/tripRoutes';
 import maintenanceRoutes from './routes/maintenanceRoutes';
+import fuelRoutes from './routes/fuelRoutes';
+import expenseRoutes from './routes/expenseRoutes';
+import analyticsRoutes from './routes/analyticsRoutes';
+import exportRoutes from './routes/exportRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import { initCronJobs } from './services/cronService';
 
@@ -47,6 +51,10 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/fuel', fuelRoutes);
+app.use('/api/expense', expenseRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/export', exportRoutes);
 
 // Simple Health Check
 app.get('/api/health', (req, res) => {

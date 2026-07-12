@@ -37,3 +37,22 @@ export const documentSchema = z.object({
   type: z.enum(['RC', 'Insurance', 'Tax Receipt', 'Other']),
   fileUrl: z.string().url('Must be a valid URL'),
 });
+
+export const fuelSchema = z.object({
+  vehicle_id: z.string().or(z.number()),
+  fuel_date: z.string().refine((date) => !isNaN(Date.parse(date)), { message: 'Must be a valid date' }),
+  quantity: z.number().positive('Fuel quantity must be positive'),
+  price_per_liter: z.number().positive('Price must be positive'),
+  odometer: z.number().nonnegative('Odometer reading cannot be negative'),
+  station: z.string().optional(),
+  remarks: z.string().optional(),
+});
+
+export const expenseSchema = z.object({
+  vehicle_id: z.string().or(z.number()),
+  category: z.enum(['Maintenance', 'Toll', 'Parking', 'Insurance', 'Fine', 'Miscellaneous']),
+  amount: z.number().positive('Amount must be positive'),
+  expense_date: z.string().refine((date) => !isNaN(Date.parse(date)), { message: 'Must be a valid date' }),
+  description: z.string().optional(),
+});
+

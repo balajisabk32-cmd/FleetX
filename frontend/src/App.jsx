@@ -16,6 +16,7 @@ const ease = [0.32, 0.72, 0, 1];
 
 function Navbar({ showIntro }) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const navigate = useNavigate();
 
   return (
     <>
@@ -42,8 +43,8 @@ function Navbar({ showIntro }) {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="text-white/70 hover:text-white" onClick={() => { if(typeof navigate !== 'undefined') navigate('/auth'); else window.location.href='/auth'; }}>Login</Button>
-            <Button size="sm" className="rounded-full">Get Started</Button>
+            <Button variant="ghost" size="sm" className="text-white/70 hover:text-white" onClick={() => navigate('/auth')}>Login</Button>
+            <Button size="sm" className="rounded-full" onClick={() => navigate('/auth')}>Get Started</Button>
           </div>
 
           <button 
@@ -95,7 +96,7 @@ function Navbar({ showIntro }) {
                 Analytics
               </motion.a>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, ease }}>
-                <Button size="lg" className="mt-8 rounded-full text-lg">Launch Workspace</Button>
+                <Button size="lg" className="mt-8 rounded-full text-lg" onClick={() => navigate('/auth')}>Launch Workspace</Button>
               </motion.div>
             </div>
           </motion.div>
@@ -106,6 +107,8 @@ function Navbar({ showIntro }) {
 }
 
 function Hero() {
+  const navigate = useNavigate();
+
   return (
     <section className="relative min-h-[100dvh] pt-40 pb-24 px-4 flex flex-col items-center text-center">
       <motion.div 
@@ -117,9 +120,11 @@ function Hero() {
         <Badge variant="primary" className="mb-6">Smart Operations</Badge>
         
         <div className="text-5xl md:text-7xl font-bold tracking-tighter leading-[1.1] mb-8">
-          <AnimatedTextReveal text="Ditch the Spreadsheets." />
-          <br className="hidden md:block"/>
-          <AnimatedTextReveal text="Drive Your Fleet Forward." />
+          <React.Fragment>
+            <AnimatedTextReveal text="Ditch the Spreadsheets." />
+            <br className="hidden md:block"/>
+            <AnimatedTextReveal text="Drive Your Fleet Forward." />
+          </React.Fragment>
         </div>
 
         <p className="text-lg md:text-xl text-white/60 max-w-2xl mb-12 leading-relaxed">
@@ -127,13 +132,13 @@ function Hero() {
         </p>
         
         <div className="flex flex-col sm:flex-row items-center gap-4">
-          <GlowButton>
+          <GlowButton onClick={() => navigate('/auth')}>
             <span>Launch Workspace</span>
             <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center transition-transform duration-500 group-hover:translate-x-1 group-hover:scale-105">
               <ArrowUpRight weight="bold" className="text-black" />
             </div>
           </GlowButton>
-          <Button variant="secondary" size="lg" className="rounded-full h-12 px-8">
+          <Button variant="secondary" size="lg" className="rounded-full h-12 px-8" onClick={() => navigate('/auth')}>
             See How It Works
           </Button>
         </div>
@@ -490,6 +495,8 @@ function Analytics() {
 }
 
 function Footer() {
+  const navigate = useNavigate();
+
   return (
     <footer className="py-32 px-4 relative overflow-hidden border-t border-white/10">
       <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-50 pointer-events-none"></div>
@@ -497,7 +504,7 @@ function Footer() {
         <h2 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6">Ready to optimize your<br/>transport operations?</h2>
         <p className="text-xl text-white/60 mb-12">Join the modern era of logistics in under 5 minutes.</p>
         
-        <GlowButton>
+        <GlowButton onClick={() => navigate('/auth')}>
           <span className="px-4">Deploy FleetX Now</span>
           <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center transition-transform duration-500 group-hover:translate-x-1 group-hover:scale-105">
             <ArrowUpRight weight="bold" className="text-black" />
@@ -523,68 +530,7 @@ function Footer() {
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import AuthPage from './pages/auth/AuthPage';
 
-function LandingPage() {
-  const [showIntro, setShowIntro] = React.useState(true);
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => setShowIntro(false), 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-background">
-      <AnimatePresence>
-        {showIntro && (
-          <motion.div
-            key="intro-screen"
-            className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center"
-            exit={{ opacity: 0, transition: { duration: 1, ease } }}
-          >
-            <div className="flex flex-col items-center justify-center w-full h-full">
-               <motion.img 
-                 layoutId="main-logo"
-                 src={LogoIcon} 
-                 alt="FleetX Logo" 
-                 initial={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
-                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                 transition={{ duration: 1.2, ease }}
-                 className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-2xl" 
-               />
-               <motion.div 
-                 initial={{ opacity: 0, y: 10 }}
-                 animate={{ opacity: 1, y: 0 }}
-                 exit={{ opacity: 0, y: -10 }}
-                 transition={{ delay: 0.5, duration: 1, ease }}
-                 className="mt-8 text-3xl font-bold tracking-tighter"
-               >
-                 FleetX
-               </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <Navbar showIntro={showIntro} />
-      
-      <AnimatePresence>
-        {!showIntro && (
-          <motion.div
-            initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 1.2, ease, delay: 0.3 }}
-            className="flex flex-col"
-          >
-            <Hero />
-            <ProblemSolution />
-            <RoleBasedFeatures />
-            <SmartAutomations />
-            <Analytics />
-            <Footer />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
 function LandingPage() {
   const [showIntro, setShowIntro] = React.useState(true);
 
@@ -649,12 +595,14 @@ function LandingPage() {
   );
 }
 
-}
 
 import DashboardLayout from './pages/dashboard/DashboardLayout';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import TripsPage from './pages/dashboard/TripsPage';
 import MaintenancePage from './pages/dashboard/MaintenancePage';
+import VehiclesPage from './pages/dashboard/VehiclesPage';
+import DriversPage from './pages/dashboard/DriversPage';
+import FuelPage from './pages/dashboard/FuelPage';
 
 function App() {
   return (
@@ -663,10 +611,11 @@ function App() {
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<DashboardPage />} />
-        <Route path="fleet" element={<div className="p-8">Fleet View Coming Soon</div>} />
+        <Route path="vehicles" element={<VehiclesPage />} />
         <Route path="trips" element={<TripsPage />} />
         <Route path="maintenance" element={<MaintenancePage />} />
-        <Route path="personnel" element={<div className="p-8">Personnel Coming Soon</div>} />
+        <Route path="drivers" element={<DriversPage />} />
+        <Route path="financial" element={<FuelPage />} />
       </Route>
     </Routes>
   );

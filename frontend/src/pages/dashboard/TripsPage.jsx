@@ -121,7 +121,7 @@ export default function TripsPage() {
   }
 
   return (
-    <div ref={pageRef} className="w-full h-full flex flex-col relative overflow-hidden">
+    <div ref={pageRef} className="w-full pb-16 flex flex-col relative">
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 dash-title">
         <div>
@@ -131,9 +131,12 @@ export default function TripsPage() {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">Trip Management</h1>
         </div>
         
-        <Button onClick={() => setShowForm(true)} className="rounded-full h-10 mt-4 md:mt-0">
-          <Plus className="mr-2" /> New Trip
-        </Button>
+        <button 
+          onClick={() => setShowForm(true)} 
+          className="rounded-full h-11 bg-primary hover:bg-primary-hover text-white font-semibold flex items-center gap-2 px-6 transition-all duration-300 active:scale-95 shadow-[0_4px_20px_rgba(59,130,246,0.25)] hover:shadow-[0_4px_25px_rgba(59,130,246,0.4)] mt-4 md:mt-0"
+        >
+          <Plus size={18} /> New Trip
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pb-24 pr-2">
@@ -224,7 +227,7 @@ export default function TripsPage() {
         {showForm && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-end"
           >
             <motion.div 
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
@@ -237,7 +240,7 @@ export default function TripsPage() {
 
               <form onSubmit={handleCreateTrip} className="space-y-6">
                 
-                <div className="space-y-2">
+                 <div className="space-y-2">
                   <label className="text-xs text-white/50 uppercase tracking-wider">Select Vehicle</label>
                   <select 
                     required
@@ -246,8 +249,8 @@ export default function TripsPage() {
                     onChange={(e) => setFormData({...formData, vehicle_id: e.target.value})}
                   >
                     <option value="" disabled className="bg-[#0a0a0a]">-- Select Available Vehicle --</option>
-                    {vehicles.filter(v => v.status === 'AVAILABLE').map(v => (
-                      <option key={v.id} value={v.id} className="bg-[#0a0a0a]">{v.registration_number} (Cap: {v.maximum_load_capacity}kg)</option>
+                    {vehicles.filter(v => v.status?.toUpperCase() === 'AVAILABLE').map(v => (
+                      <option key={v.id} value={v.id} className="bg-[#0a0a0a]">{v.registrationNumber} (Cap: {v.capacity} Tons)</option>
                     ))}
                   </select>
                 </div>
@@ -261,7 +264,7 @@ export default function TripsPage() {
                     onChange={(e) => setFormData({...formData, driver_id: e.target.value})}
                   >
                     <option value="" disabled className="bg-[#0a0a0a]">-- Select Available Driver --</option>
-                    {drivers.filter(d => d.status === 'AVAILABLE' && d.capabilityFlag !== 'Expired').map(d => (
+                    {drivers.filter(d => d.status?.toUpperCase() === 'AVAILABLE' && d.capabilityFlag !== 'Expired').map(d => (
                       <option key={d.id} value={d.id} className="bg-[#0a0a0a]">{d.name} ({d.capabilityFlag || 'Active'})</option>
                     ))}
                   </select>

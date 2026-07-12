@@ -41,45 +41,6 @@ async function main() {
     }
   }
 
-  // Seeding 3 Sample Vehicles
-  const vehicles = [
-    { registrationNumber: 'V-001', make: 'Ford', model: 'Transit', year: 2022, capacity: 1500, status: 'Available' },
-    { registrationNumber: 'V-002', make: 'Mercedes', model: 'Sprinter', year: 2023, capacity: 2000, status: 'Available' },
-    { registrationNumber: 'V-003', make: 'Toyota', model: 'Hiace', year: 2021, capacity: 1200, status: 'Available' },
-  ];
-
-  console.log('Seeding vehicles...');
-  for (const v of vehicles) {
-    const existing = await prisma.vehicle.findUnique({ where: { registrationNumber: v.registrationNumber } });
-    if (!existing) {
-      await prisma.vehicle.create({ data: v });
-      console.log(`Created vehicle: ${v.registrationNumber}`);
-    }
-  }
-
-  // Seeding 3 Sample Drivers
-  const futureDate = new Date();
-  futureDate.setFullYear(futureDate.getFullYear() + 2);
-
-  const expiringDate = new Date();
-  expiringDate.setDate(expiringDate.getDate() + 15); // Expires in 15 days!
-
-  const drivers = [
-    { name: 'John Doe', licenseNumber: 'DL-001', licenseExpiryDate: futureDate, status: 'Available' },
-    { name: 'Jane Smith', licenseNumber: 'DL-002', licenseExpiryDate: futureDate, status: 'Available' },
-    { name: 'Bob Johnson', licenseNumber: 'DL-003', licenseExpiryDate: futureDate, status: 'Available' },
-    { name: 'Alice Expiring', licenseNumber: 'DL-EXP', licenseExpiryDate: expiringDate, status: 'Available' },
-  ];
-
-  console.log('Seeding drivers...');
-  for (const d of drivers) {
-    const existing = await prisma.driver.findUnique({ where: { licenseNumber: d.licenseNumber } });
-    if (!existing) {
-      await prisma.driver.create({ data: d });
-      console.log(`Created driver: ${d.name}`);
-    }
-  }
-
   console.log('Seeding finished.');
 }
 
