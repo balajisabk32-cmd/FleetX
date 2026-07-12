@@ -93,6 +93,62 @@
             <button class="fetch-btn" onclick="fetchData('notifications')">Fetch Automated Alerts</button>
             <pre id="notificationDisplay">// System alerts will appear here...</pre>
         </div>
+
+        <div class="card" style="border: 2px solid #f39c12;">
+            <h2>5. Multi-Stage Expiration Engine <span style="font-size:14px; background:#f1c40f; color:black; padding:4px; border-radius:4px;">Wow Factor</span></h2>
+            <p>Fast-forward time to test the multi-stage cron job! Set the insurance expiry date of a vehicle to trigger 60, 30, or 7 day tiered warnings.</p>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end;">
+                <div>
+                    <label>Vehicle ID</label>
+                    <input type="number" id="expId" placeholder="e.g. 1" style="width: 80px;">
+                </div>
+                <button onclick="doSetExpiry(60)">Set Insurance to 60 Days</button>
+                <button onclick="doSetExpiry(30)">Set Insurance to 30 Days</button>
+                <button onclick="doSetExpiry(7)">Set Insurance to 7 Days</button>
+            </div>
+            <div id="expStatus" class="status" style="display:none;"></div>
+            <p style="font-size: 13px; color: #666; font-style: italic;">Note: After setting, wait up to 60 seconds for the cron job to run, then refresh Dashboard Alerts above to see the tiered notification.</p>
+        </div>
+
+        <div class="card" style="border: 2px solid #9b59b6;">
+            <h2>6. Document Vault & Audit Trail <span style="font-size:14px; background:#8e44ad; color:white; padding:4px; border-radius:4px;">Wow Factor</span></h2>
+            <p>Upload documents and click actions to see the strict, immutable Compliance Audit Trail update in real-time.</p>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <div style="flex:1;">
+                    <label>Vehicle Reg Number</label>
+                    <input type="text" id="docReg" placeholder="e.g. V-001">
+                </div>
+                <div style="flex:1;">
+                    <label>Document Type</label>
+                    <select id="docType" style="width:100%; padding:8px; border:1px solid #d1d5db; border-radius:4px;">
+                        <option value="RC">RC (Registration)</option>
+                        <option value="Insurance">Insurance</option>
+                        <option value="Tax Receipt">Tax Receipt</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <label>File URL (Mock)</label>
+                    <input type="text" id="docUrl" value="https://vault.fleetx.com/files/document.pdf">
+                </div>
+            </div>
+            <button onclick="doUploadDocument()">Upload Document</button>
+            <hr style="margin:15px 0;">
+            <div style="display: flex; gap: 10px; align-items: flex-end;">
+                <div>
+                    <label>Document ID to Access</label>
+                    <input type="number" id="docId" placeholder="e.g. 1">
+                </div>
+                <button onclick="doViewDocument()" class="secondary">View Document</button>
+                <button onclick="doDownloadDocument()" class="secondary">Download Document</button>
+            </div>
+            <div id="docStatus" class="status" style="display:none;"></div>
+            <pre id="docDisplay">// Document Data...</pre>
+
+            <h3 style="margin-top:20px; color:#8e44ad;">Compliance Audit Trail</h3>
+            <button class="fetch-btn" onclick="fetchAuditLogs()">Refresh Audit Trail</button>
+            <pre id="auditDisplay" style="background:#2c3e50;">// Audit logs will appear here...</pre>
+        </div>
     </div>
 
     <div id="globalError" style="display:none; background:red; color:white; padding:20px; font-size:18px; position:fixed; top:0; left:0; width:100%; z-index:9999;"></div>
@@ -221,6 +277,118 @@
                 }
             } catch (err) {
                 showStatus('driverStatus', 'Network error', false);
+            }
+        }
+
+        // 4. Handle Fast-Forward Expiration Engine Testing
+        async function doSetExpiry(days) {
+            const vId = document.getElementById('expId').value;
+            if (!vId) return showStatus('expStatus', 'Please enter a Vehicle ID', false);
+
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + days);
+
+            try {
+                const res = await fetch(`${API_BASE}/vehicles/${vId}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ insuranceExpiry: futureDate.toISOString() })
+                });
+                
+                if (res.ok) {
+                    showStatus('expStatus', `Success! Set Insurance Expiry to ${days} days from now. The Cron Job will trigger a tier ${days === 60 ? '1' : days === 30 ? '2' : '3'} alert within 1 minute!`, true);
+                } else {
+                    const data = await res.json();
+                    showStatus('expStatus', `Error: ${data.error}`, false);
+                }
+            } catch (err) {
+                showStatus('expStatus', 'Network error', false);
+            }
+        }
+
+        // 5. Document Vault Functions
+        async function doUploadDocument() {
+            try {
+                const payload = {
+                    vehicleRegNumber: document.getElementById('docReg').value,
+                    type: document.getElementById('docType').value,
+                    fileUrl: document.getElementById('docUrl').value
+                };
+
+                const res = await fetch(`${API_BASE}/documents`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showStatus('docStatus', `Document (ID: ${data.data.id}) uploaded successfully!`, true);
+                    fetchAuditLogs();
+                } else {
+                    const errorMsg = data.details ? `${data.error}: ${data.details.map(d => d.message).join(', ')}` : data.error;
+                    showStatus('docStatus', errorMsg, false);
+                }
+            } catch (err) {
+                showStatus('docStatus', 'Network error', false);
+            }
+        }
+
+        async function doViewDocument() {
+            const docId = document.getElementById('docId').value;
+            if (!docId) return showStatus('docStatus', 'Please enter a Document ID', false);
+            
+            const displayEl = document.getElementById('docDisplay');
+            displayEl.textContent = 'Loading...';
+            try {
+                const res = await fetch(`${API_BASE}/documents/${docId}`, { headers: getHeaders() });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    displayEl.textContent = JSON.stringify(data, null, 2);
+                    fetchAuditLogs(); // Automatically fetch audit logs to show the VIEW action
+                } else {
+                    displayEl.textContent = `Error: ${data.error}`;
+                }
+            } catch (err) {
+                displayEl.textContent = 'Network error.';
+            }
+        }
+
+        async function doDownloadDocument() {
+            const docId = document.getElementById('docId').value;
+            if (!docId) return showStatus('docStatus', 'Please enter a Document ID', false);
+            
+            const displayEl = document.getElementById('docDisplay');
+            displayEl.textContent = 'Requesting download...';
+            try {
+                const res = await fetch(`${API_BASE}/documents/${docId}/download`, { headers: getHeaders() });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    displayEl.textContent = `DOWNLOAD GRANTED:\n${data.downloadUrl}`;
+                    fetchAuditLogs(); // Automatically fetch audit logs to show the DOWNLOAD action
+                } else {
+                    displayEl.textContent = `Error: ${data.error}`;
+                }
+            } catch (err) {
+                displayEl.textContent = 'Network error.';
+            }
+        }
+
+        async function fetchAuditLogs() {
+            const displayEl = document.getElementById('auditDisplay');
+            displayEl.textContent = 'Loading...';
+            try {
+                const res = await fetch(`${API_BASE}/documents/audit-logs`, { headers: getHeaders() });
+                const data = await res.json();
+                if (res.ok) {
+                    displayEl.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    displayEl.textContent = `Error: ${data.error}`;
+                }
+            } catch (err) {
+                displayEl.textContent = 'Network error.';
             }
         }
 

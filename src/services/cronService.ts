@@ -72,7 +72,69 @@ export const initCronJobs = () => {
         console.log(`[CRON] Suspended driver ${driver.name} due to expired license.`);
       }
 
-      console.log('[CRON] Scheduled task completed successfully.');
+      console.log('[CRON] Driver task completed.');
+
+      // --- NEW MULTI-STAGE COMPLIANCE EXPIRATION ENGINE ---
+      console.log('[CRON] Running scheduled task: Multi-Stage Vehicle Compliance Engine...');
+      
+      const vehicles = await prisma.vehicle.findMany();
+      
+      const checkAndNotify = async (
+        vehicleId: number, 
+        regNumber: string, 
+        type: string, 
+        expiryDate: Date | null, 
+        alertLevel: number, 
+        levelKey: string
+      ) => {
+        if (!expiryDate) return;
+        
+        const msPerDay = 1000 * 60 * 60 * 24;
+        const daysLeft = Math.ceil((expiryDate.getTime() - now.getTime()) / msPerDay);
+        
+        let newLevel = alertLevel;
+        let message = '';
+        
+        if (daysLeft <= 0 && alertLevel < 4) {
+          newLevel = 4;
+          message = `EMERGENCY: Vehicle ${regNumber} ${type} has EXPIRED!`;
+        } else if (daysLeft <= 7 && daysLeft > 0 && alertLevel < 3) {
+          newLevel = 3;
+          message = `CRITICAL (7 Days): Vehicle ${regNumber} ${type} expires in ${daysLeft} days!`;
+        } else if (daysLeft <= 30 && daysLeft > 7 && alertLevel < 2) {
+          newLevel = 2;
+          message = `WARNING (30 Days): Vehicle ${regNumber} ${type} expires in ${daysLeft} days.`;
+        } else if (daysLeft <= 60 && daysLeft > 30 && alertLevel < 1) {
+          newLevel = 1;
+          message = `INFO (60 Days): Vehicle ${regNumber} ${type} expires in ${daysLeft} days.`;
+        }
+
+        if (newLevel !== alertLevel) {
+          // Update the specific alert level for this vehicle
+          await prisma.vehicle.update({
+            where: { id: vehicleId },
+            data: { [levelKey]: newLevel },
+          });
+
+          // Generate tiered notification
+          await prisma.notification.create({
+            data: {
+              type: newLevel === 4 ? 'CRITICAL' : newLevel === 3 ? 'CRITICAL' : newLevel === 2 ? 'WARNING' : 'INFO',
+              message,
+            },
+          });
+          
+          console.log(`[CRON] Tiered Notification generated for ${regNumber} - ${type} (Level ${newLevel})`);
+        }
+      };
+
+      for (const v of vehicles) {
+        await checkAndNotify(v.id, v.registrationNumber, 'Insurance', v.insuranceExpiry, v.insuranceAlertLevel, 'insuranceAlertLevel');
+        await checkAndNotify(v.id, v.registrationNumber, 'Emissions', v.emissionsExpiry, v.emissionsAlertLevel, 'emissionsAlertLevel');
+        await checkAndNotify(v.id, v.registrationNumber, 'Safety Inspection', v.inspectionExpiry, v.inspectionAlertLevel, 'inspectionAlertLevel');
+      }
+
+      console.log('[CRON] Multi-Stage Vehicle Compliance Engine completed.');
     } catch (error) {
       console.error('[CRON] Error running scheduled task:', error);
     }

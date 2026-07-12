@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes';
 import vehicleRoutes from './routes/vehicleRoutes';
 import driverRoutes from './routes/driverRoutes';
 import notificationRoutes from './routes/notificationRoutes';
+import documentRoutes from './routes/documentRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import { initCronJobs } from './services/cronService';
 
@@ -39,6 +40,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/documents', documentRoutes);
 
 // Simple Health Check
 app.get('/api/health', (req, res) => {
