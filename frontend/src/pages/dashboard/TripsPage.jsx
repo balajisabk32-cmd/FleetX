@@ -38,8 +38,14 @@ export default function TripsPage() {
       ]);
       
       if (tripsRes.ok) setTrips(await tripsRes.json());
-      if (vehRes.ok) setVehicles(await vehRes.json());
-      if (drvRes.ok) setDrivers(await drvRes.json());
+      if (vehRes.ok) {
+        const vData = await vehRes.json();
+        setVehicles(Array.isArray(vData) ? vData : (vData.vehicles || []));
+      }
+      if (drvRes.ok) {
+        const dData = await drvRes.json();
+        setDrivers(Array.isArray(dData) ? dData : (dData.drivers || []));
+      }
     } catch (err) {
       console.error("Failed to fetch trips data:", err);
     } finally {

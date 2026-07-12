@@ -75,7 +75,7 @@ export default function DashboardLayout() {
                     className={`nav-item flex items-center justify-center md:justify-start gap-4 p-3.5 rounded-2xl transition-all duration-300 group relative ${
                       isActive 
                         ? 'bg-white/20 text-white shadow-[0_4px_20px_rgba(255,255,255,0.1),inset_0_1px_1px_rgba(255,255,255,0.4)] font-bold' 
-                        : 'text-white/80 hover:bg-white/10 hover:text-white font-medium'
+                        : 'text-white hover:bg-white/10 font-medium'
                     }`}
                   >
                     <div className="relative flex items-center justify-center">

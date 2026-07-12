@@ -40,7 +40,10 @@ export default function MaintenancePage() {
       
       if (recRes.ok) setRecords(await recRes.json());
       if (remRes.ok) setReminders(await remRes.json());
-      if (vehRes.ok) setVehicles(await vehRes.json());
+      if (vehRes.ok) {
+        const vData = await vehRes.json();
+        setVehicles(Array.isArray(vData) ? vData : (vData.vehicles || []));
+      }
     } catch (err) {
       console.error("Failed to fetch maintenance data:", err);
     } finally {

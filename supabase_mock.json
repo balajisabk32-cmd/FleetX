@@ -2,8 +2,8 @@
   "vehicles": [
     {
       "id": 1,
-      "created_at": "2026-07-12T11:27:50.352Z",
-      "updated_at": "2026-07-12T11:27:50.352Z",
+      "created_at": "2026-07-12T11:34:23.029Z",
+      "updated_at": "2026-07-12T11:34:23.029Z",
       "registration_number": "TX-777-AA",
       "vehicle_name": "Volvo FH16",
       "vehicle_type": "Heavy Truck",
@@ -15,8 +15,8 @@
     },
     {
       "id": 2,
-      "created_at": "2026-07-12T11:27:50.352Z",
-      "updated_at": "2026-07-12T11:27:50.352Z",
+      "created_at": "2026-07-12T11:34:23.029Z",
+      "updated_at": "2026-07-12T11:34:23.029Z",
       "registration_number": "TX-888-BB",
       "vehicle_name": "Ford F-150",
       "vehicle_type": "Light Pickup",
@@ -28,8 +28,8 @@
     },
     {
       "id": 3,
-      "created_at": "2026-07-12T11:27:50.352Z",
-      "updated_at": "2026-07-12T11:27:50.352Z",
+      "created_at": "2026-07-12T11:34:23.029Z",
+      "updated_at": "2026-07-12T11:34:23.029Z",
       "registration_number": "TX-999-CC",
       "vehicle_name": "Scania R500",
       "vehicle_type": "Heavy Truck",
@@ -41,8 +41,8 @@
     },
     {
       "id": "1",
-      "created_at": "2026-07-12T11:27:50.358Z",
-      "updated_at": "2026-07-12T11:27:50.358Z",
+      "created_at": "2026-07-12T11:34:23.035Z",
+      "updated_at": "2026-07-12T11:34:23.035Z",
       "registration_number": "TX-777-AA",
       "vehicle_name": "Volvo FH16",
       "vehicle_type": "Heavy Truck",
@@ -54,8 +54,8 @@
     },
     {
       "id": "2",
-      "created_at": "2026-07-12T11:27:50.358Z",
-      "updated_at": "2026-07-12T11:27:50.358Z",
+      "created_at": "2026-07-12T11:34:23.035Z",
+      "updated_at": "2026-07-12T11:34:23.035Z",
       "registration_number": "TX-888-BB",
       "vehicle_name": "Ford F-150",
       "vehicle_type": "Light Pickup",
@@ -67,8 +67,8 @@
     },
     {
       "id": "3",
-      "created_at": "2026-07-12T11:27:50.358Z",
-      "updated_at": "2026-07-12T11:27:50.358Z",
+      "created_at": "2026-07-12T11:34:23.035Z",
+      "updated_at": "2026-07-12T11:34:23.035Z",
       "registration_number": "TX-999-CC",
       "vehicle_name": "Scania R500",
       "vehicle_type": "Heavy Truck",
@@ -83,8 +83,8 @@
   "trips": [
     {
       "id": 1,
-      "created_at": "2026-07-12T11:27:50.360Z",
-      "updated_at": "2026-07-12T11:27:50.362Z",
+      "created_at": "2026-07-12T11:34:23.037Z",
+      "updated_at": "2026-07-12T11:34:23.041Z",
       "trip_number": "TRP-101",
       "vehicle_id": 1,
       "driver_id": 1,
@@ -97,8 +97,8 @@
     },
     {
       "id": 2,
-      "created_at": "2026-07-12T11:27:50.360Z",
-      "updated_at": "2026-07-12T11:27:50.362Z",
+      "created_at": "2026-07-12T11:34:23.037Z",
+      "updated_at": "2026-07-12T11:34:23.041Z",
       "trip_number": "TRP-102",
       "vehicle_id": 2,
       "driver_id": 2,
@@ -113,33 +113,33 @@
   "maintenance": [
     {
       "id": 1,
-      "created_at": "2026-07-12T11:27:50.372Z",
-      "updated_at": "2026-07-12T11:27:50.372Z",
+      "created_at": "2026-07-12T11:34:23.051Z",
+      "updated_at": "2026-07-12T11:34:23.051Z",
       "vehicle_id": 1,
       "issue": "Engine Oil Replacement",
       "priority": "LOW",
       "estimated_cost": 150,
       "status": "CLOSED",
       "actual_cost": 145,
-      "opened_at": "2026-07-12T11:27:50.370Z"
+      "opened_at": "2026-07-12T11:34:23.048Z"
     },
     {
       "id": 2,
-      "created_at": "2026-07-12T11:27:50.372Z",
-      "updated_at": "2026-07-12T11:27:50.372Z",
+      "created_at": "2026-07-12T11:34:23.051Z",
+      "updated_at": "2026-07-12T11:34:23.051Z",
       "vehicle_id": 3,
       "issue": "Brake Pad Wear",
       "priority": "HIGH",
       "estimated_cost": 450,
       "status": "OPEN",
-      "opened_at": "2026-07-12T11:27:50.370Z"
+      "opened_at": "2026-07-12T11:34:23.048Z"
     }
   ],
   "fuel_logs": [
     {
       "id": 1,
-      "created_at": "2026-07-12T11:27:50.381Z",
-      "updated_at": "2026-07-12T11:27:50.381Z",
+      "created_at": "2026-07-12T11:34:23.061Z",
+      "updated_at": "2026-07-12T11:34:23.061Z",
       "vehicle_id": "1",
       "fuel_date": "2026-07-10",
       "quantity": 150,
@@ -149,8 +149,8 @@
     },
     {
       "id": 2,
-      "created_at": "2026-07-12T11:27:50.381Z",
-      "updated_at": "2026-07-12T11:27:50.381Z",
+      "created_at": "2026-07-12T11:34:23.061Z",
+      "updated_at": "2026-07-12T11:34:23.061Z",
       "vehicle_id": "2",
       "fuel_date": "2026-07-11",
       "quantity": 120,
@@ -162,8 +162,8 @@
   "expense_logs": [
     {
       "id": 1,
-      "created_at": "2026-07-12T11:27:50.386Z",
-      "updated_at": "2026-07-12T11:27:50.386Z",
+      "created_at": "2026-07-12T11:34:23.065Z",
+      "updated_at": "2026-07-12T11:34:23.065Z",
       "vehicle_id": "1",
       "category": "Toll",
       "amount": 45,
@@ -172,8 +172,8 @@
     },
     {
       "id": 2,
-      "created_at": "2026-07-12T11:27:50.386Z",
-      "updated_at": "2026-07-12T11:27:50.386Z",
+      "created_at": "2026-07-12T11:34:23.065Z",
+      "updated_at": "2026-07-12T11:34:23.065Z",
       "vehicle_id": "2",
       "category": "Insurance",
       "amount": 1200,
@@ -184,19 +184,19 @@
   "trip_logs": [
     {
       "id": 1,
-      "created_at": "2026-07-12T11:27:50.367Z",
-      "updated_at": "2026-07-12T11:27:50.367Z",
+      "created_at": "2026-07-12T11:34:23.045Z",
+      "updated_at": "2026-07-12T11:34:23.045Z",
       "vehicle_id": "1",
-      "start_date": "2026-07-12T11:27:50.365Z",
+      "start_date": "2026-07-12T11:34:23.043Z",
       "distance": 260,
       "revenue": 1500
     },
     {
       "id": 2,
-      "created_at": "2026-07-12T11:27:50.367Z",
-      "updated_at": "2026-07-12T11:27:50.367Z",
+      "created_at": "2026-07-12T11:34:23.045Z",
+      "updated_at": "2026-07-12T11:34:23.045Z",
       "vehicle_id": "2",
-      "start_date": "2026-07-12T11:27:50.365Z",
+      "start_date": "2026-07-12T11:34:23.043Z",
       "distance": 380,
       "revenue": 2200
     }
@@ -204,8 +204,8 @@
   "maintenance_logs": [
     {
       "id": 1,
-      "created_at": "2026-07-12T11:27:50.376Z",
-      "updated_at": "2026-07-12T11:27:50.376Z",
+      "created_at": "2026-07-12T11:34:23.057Z",
+      "updated_at": "2026-07-12T11:34:23.057Z",
       "vehicle_id": "1",
       "service_date": "2026-07-12",
       "description": "Engine Oil Replacement",
@@ -213,8 +213,8 @@
     },
     {
       "id": 2,
-      "created_at": "2026-07-12T11:27:50.376Z",
-      "updated_at": "2026-07-12T11:27:50.376Z",
+      "created_at": "2026-07-12T11:34:23.057Z",
+      "updated_at": "2026-07-12T11:34:23.057Z",
       "vehicle_id": "3",
       "service_date": "2026-07-12",
       "description": "Brake Pad Wear",
