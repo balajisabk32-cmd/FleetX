@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trips - Fleet Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="trips.html">Fleet Management</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active" href="trips.html">Trips</a></li>
+                    <li class="nav-item"><a class="nav-link" href="maintenance.html">Maintenance</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Trips</h2>
+            <button class="btn btn-secondary" onclick="openHistoryModal()">View Trip History</button>
+        </div>
+        <div id="message" class="mt-2"></div>
+        
+        <div class="card mb-4 mt-3">
+            <div class="card-body">
+                <h5 class="card-title">Create New Trip</h5>
+                <form id="tripForm">
+                    <div class="row">
+                        <div class="col-md-2 mb-3">
+                            <input type="number" id="vehicle_id" class="form-control" placeholder="Vehicle ID" required>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <input type="number" id="driver_id" class="form-control" placeholder="Driver ID" required>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <input type="text" id="source" class="form-control" placeholder="Source" required>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <input type="text" id="destination" class="form-control" placeholder="Destination" required>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <input type="number" id="cargo_weight" class="form-control" placeholder="Cargo Wt (kg)" step="0.1" required>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <input type="number" id="planned_distance" class="form-control" placeholder="Distance (km)" step="0.1" required>
+                        </div>
+                        <div class="col-md-12 mb-3 text-end">
+                            <button type="submit" class="btn btn-primary">Create Trip (Draft)</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Trip No.</th>
+                    <th>Vehicle</th>
+                    <th>Route</th>
+                    <th>Dist / Cargo</th>
+                    <th>Travel Time</th>
+                    <th>ETA</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tripTableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal fade" id="historyModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Trip History</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>Trip No.</th>
+                                <th>Vehicle</th>
+                                <th>Route</th>
+                                <th>Distance</th>
+                                <th>Dispatch</th>
+                                <th>Completion</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadTrips);
+        
+        document.getElementById('tripForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                vehicle_id: parseInt(document.getElementById('vehicle_id').value),
+                driver_id: parseInt(document.getElementById('driver_id').value),
+                source: document.getElementById('source').value,
+                destination: document.getElementById('destination').value,
+                cargo_weight: parseFloat(document.getElementById('cargo_weight').value),
+                planned_distance: parseFloat(document.getElementById('planned_distance').value)
+            };
+            const result = await apiCall('/api/trips', 'POST', data);
+            if (result) {
+                showMessage(`Trip ${result.trip_number} created successfully`, 'success');
+                e.target.reset();
+                loadTrips();
+            }
+        });
+
+        async function loadTrips() {
+            const trips = await apiCall('/api/trips');
+            if (trips) {
+                const tbody = document.getElementById('tripTableBody');
+                tbody.innerHTML = '';
+                trips.forEach(t => {
+                    let actions = '';
+                    if (t.status === 'DRAFT') {
+                        actions = `
+                            <button class="btn btn-sm btn-success" onclick="updateTrip(${t.id}, 'dispatch')">Dispatch</button>
+                            <button class="btn btn-sm btn-danger" onclick="updateTrip(${t.id}, 'cancel')">Cancel</button>
+                        `;
+                    } else if (t.status === 'DISPATCHED') {
+                        actions = `<button class="btn btn-sm btn-primary" onclick="updateTrip(${t.id}, 'complete')">Complete</button>`;
+                    }
+
+                    const eta = new Date(t.estimated_arrival_time).toLocaleString();
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${t.trip_number}</strong></td>
+                            <td>${t.vehicles?.registration_number || t.vehicle_id}</td>
+                            <td>${t.source} &rarr; ${t.destination}</td>
+                            <td>${t.planned_distance} km / ${t.cargo_weight} kg</td>
+                            <td>${t.estimated_travel_time} hrs</td>
+                            <td>${eta}</td>
+                            <td><span class="badge bg-${t.status === 'COMPLETED' ? 'success' : t.status === 'CANCELLED' ? 'danger' : t.status === 'DISPATCHED' ? 'info' : 'secondary'}">${t.status}</span></td>
+                            <td>${actions}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function updateTrip(id, action) {
+            const result = await apiCall(`/api/trips/${id}/${action}`, 'PUT');
+            if (result) {
+                showMessage(`Trip ${action}ed successfully`, 'success');
+                loadTrips();
+            }
+        }
+
+        async function openHistoryModal() {
+            const history = await apiCall('/api/trips/history');
+            if (history) {
+                const tbody = document.getElementById('historyTableBody');
+                tbody.innerHTML = '';
+                history.forEach(t => {
+                    const dispatch = t.dispatch_time ? new Date(t.dispatch_time).toLocaleString() : '-';
+                    const complete = t.completed_time ? new Date(t.completed_time).toLocaleString() : '-';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${t.trip_number}</td>
+                            <td>${t.vehicles?.vehicle_name || t.vehicle_id}</td>
+                            <td>${t.source} - ${t.destination}</td>
+                            <td>${t.planned_distance} km</td>
+                            <td>${dispatch}</td>
+                            <td>${complete}</td>
+                            <td><span class="badge bg-${t.status === 'COMPLETED' ? 'success' : 'secondary'}">${t.status}</span></td>
+                        </tr>
+                    `;
+                });
+                new bootstrap.Modal(document.getElementById('historyModal')).show();
+            }
+        }
+    </script>
+</body>
+</html>
