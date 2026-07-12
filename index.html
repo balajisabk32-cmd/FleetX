@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Management Backend Tester</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f4f5; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { text-align: center; color: #111; margin-bottom: 30px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { margin-top: 0; border-bottom: 2px solid #f3f4f6; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; }
+        input { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; }
+        button { background: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px; margin-right: 5px; }
+        button:hover { background: #1d4ed8; }
+        button.secondary { background: #4b5563; }
+        button.secondary:hover { background: #374151; }
+        .status { margin-top: 10px; padding: 10px; border-radius: 4px; display: none; font-size: 14px; }
+        .status.success { background: #dcfce7; color: #166534; display: block; }
+        .status.error { background: #fee2e2; color: #991b1b; display: block; }
+        pre { background: #1f2937; color: #f9fafb; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 13px; max-height: 300px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fleet Management Test Interface</h1>
+
+        <!-- Authentication Section -->
+        <div class="card">
+            <h2>1. Authentication</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email (Try admin@fleet.com)</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password (Try admin123)</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit">Login</button>
+                <div id="loginStatus" class="status"></div>
+            </form>
+        </div>
+
+        <!-- Vehicles Section -->
+        <div class="card">
+            <h2>2. Vehicles</h2>
+            <form id="vehicleForm">
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;"><label>Reg Number</label><input type="text" id="vReg" required></div>
+                    <div class="form-group" style="flex: 1;"><label>Make</label><input type="text" id="vMake" required></div>
+                    <div class="form-group" style="flex: 1;"><label>Model</label><input type="text" id="vModel" required></div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;"><label>Year</label><input type="number" id="vYear" required></div>
+                    <div class="form-group" style="flex: 1;"><label>Capacity (kg)</label><input type="number" id="vCap" required></div>
+                </div>
+                <button type="submit">Create Vehicle</button>
+                <button type="button" class="secondary" onclick="fetchData('vehicles')">Fetch All Vehicles</button>
+                <div id="vehicleStatus" class="status"></div>
+            </form>
+            <pre id="vehicleDisplay">// Vehicle data will appear here...</pre>
+        </div>
+
+        <!-- Drivers Section -->
+        <div class="card">
+            <h2>3. Drivers</h2>
+            <form id="driverForm">
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;"><label>Name</label><input type="text" id="dName" required></div>
+                    <div class="form-group" style="flex: 1;"><label>License Number</label><input type="text" id="dLicense" required></div>
+                    <div class="form-group" style="flex: 1;"><label>Expiry Date (Future)</label><input type="date" id="dExpiry" required></div>
+                </div>
+                <button type="submit">Create Driver</button>
+                <button type="button" class="secondary" onclick="fetchData('drivers')">Fetch All Drivers</button>
+                <div id="driverStatus" class="status"></div>
+            </form>
+            <pre id="driverDisplay">// Driver data will appear here...</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+
+        // Utility: Get auth headers
+        const getHeaders = () => {
+            const token = localStorage.getItem('fleetToken');
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : ''
+            };
+        };
+
+        // Utility: Show status message
+        const showStatus = (elementId, message, isSuccess) => {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `status ${isSuccess ? 'success' : 'error'}`;
+            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        };
+
+        // 1. Handle Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    localStorage.setItem('fleetToken', data.token);
+                    showStatus('loginStatus', `Success! Logged in as ${data.user.name} (${data.user.role})`, true);
+                } else {
+                    showStatus('loginStatus', data.error || 'Login failed', false);
+                }
+            } catch (err) {
+                showStatus('loginStatus', 'Error: ' + err.message, false);
+            }
+        });
+
+        // 2. Handle Vehicle Creation
+        document.getElementById('vehicleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const payload = {
+                    registrationNumber: document.getElementById('vReg').value,
+                    make: document.getElementById('vMake').value,
+                    model: document.getElementById('vModel').value,
+                    year: Number(document.getElementById('vYear').value),
+                    capacity: Number(document.getElementById('vCap').value)
+                };
+
+                const res = await fetch(`${API_BASE}/vehicles`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showStatus('vehicleStatus', 'Vehicle created successfully!', true);
+                    fetchData('vehicles'); // Auto-refresh list
+                } else {
+                    showStatus('vehicleStatus', data.error || JSON.stringify(data.details), false);
+                }
+            } catch (err) {
+                showStatus('vehicleStatus', 'Error: ' + err.message, false);
+            }
+        });
+
+        // 3. Handle Driver Creation
+        document.getElementById('driverForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                // Ensure date string represents an ISO format time
+                const expiryDate = new Date(document.getElementById('dExpiry').value).toISOString();
+                
+                const payload = {
+                    name: document.getElementById('dName').value,
+                    licenseNumber: document.getElementById('dLicense').value,
+                    licenseExpiryDate: expiryDate
+                };
+
+                const res = await fetch(`${API_BASE}/drivers`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showStatus('driverStatus', 'Driver created successfully!', true);
+                    fetchData('drivers'); // Auto-refresh list
+                } else {
+                    showStatus('driverStatus', data.error || JSON.stringify(data.details), false);
+                }
+            } catch (err) {
+                showStatus('driverStatus', 'Network error', false);
+            }
+        });
+
+        // Universal Data Fetcher
+        async function fetchData(endpoint) {
+            const displayEl = document.getElementById(`${endpoint === 'vehicles' ? 'vehicle' : 'driver'}Display`);
+            displayEl.textContent = 'Loading...';
+            
+            try {
+                const res = await fetch(`${API_BASE}/${endpoint}`, {
+                    headers: getHeaders()
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    displayEl.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    displayEl.textContent = `Error: ${data.error || 'Unauthorized'}`;
+                }
+            } catch (err) {
+                displayEl.textContent = 'Network error. Check backend.';
+            }
+        }
+    </script>
+</body>
+</html>
