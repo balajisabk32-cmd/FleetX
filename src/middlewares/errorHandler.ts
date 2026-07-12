@@ -7,11 +7,12 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   console.error('Error:', err);
 
   // Zod Validation Error
-  if (err instanceof ZodError) {
+  if (err && err.name === 'ZodError') {
+    const issues = err.errors || err.issues || [];
     return res.status(400).json({
       error: 'Validation Error',
-      details: err.errors.map((e) => ({
-        path: e.path.join('.'),
+      details: issues.map((e: any) => ({
+        path: e.path ? e.path.join('.') : 'unknown',
         message: e.message,
       })),
     });

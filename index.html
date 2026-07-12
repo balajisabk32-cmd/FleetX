@@ -30,7 +30,7 @@
         <!-- Authentication Section -->
         <div class="card">
             <h2>1. Authentication</h2>
-            <form id="loginForm">
+            <div id="loginForm">
                 <div class="form-group">
                     <label>Email (Try admin@fleet.com)</label>
                     <input type="email" id="email" required>
@@ -39,15 +39,15 @@
                     <label>Password (Try admin123)</label>
                     <input type="password" id="password" required>
                 </div>
-                <button type="submit">Login</button>
+                <button type="button" onclick="doLogin()">Login</button>
                 <div id="loginStatus" class="status"></div>
-            </form>
+            </div>
         </div>
 
         <!-- Vehicles Section -->
         <div class="card">
             <h2>2. Vehicles</h2>
-            <form id="vehicleForm">
+            <div id="vehicleForm">
                 <div style="display: flex; gap: 10px;">
                     <div class="form-group" style="flex: 1;"><label>Reg Number</label><input type="text" id="vReg" required></div>
                     <div class="form-group" style="flex: 1;"><label>Make</label><input type="text" id="vMake" required></div>
@@ -57,31 +57,68 @@
                     <div class="form-group" style="flex: 1;"><label>Year</label><input type="number" id="vYear" required></div>
                     <div class="form-group" style="flex: 1;"><label>Capacity (kg)</label><input type="number" id="vCap" required></div>
                 </div>
-                <button type="submit">Create Vehicle</button>
+                <button type="button" onclick="doCreateVehicle()">Create Vehicle</button>
                 <button type="button" class="secondary" onclick="fetchData('vehicles')">Fetch All Vehicles</button>
                 <div id="vehicleStatus" class="status"></div>
-            </form>
+            </div>
             <pre id="vehicleDisplay">// Vehicle data will appear here...</pre>
         </div>
 
         <!-- Drivers Section -->
         <div class="card">
             <h2>3. Drivers</h2>
-            <form id="driverForm">
-                <div style="display: flex; gap: 10px;">
-                    <div class="form-group" style="flex: 1;"><label>Name</label><input type="text" id="dName" required></div>
-                    <div class="form-group" style="flex: 1;"><label>License Number</label><input type="text" id="dLicense" required></div>
-                    <div class="form-group" style="flex: 1;"><label>Expiry Date (Future)</label><input type="date" id="dExpiry" required></div>
+            <div style="display: flex; gap: 10px;">
+                <div style="flex:1;">
+                    <label>Name</label>
+                    <input type="text" id="dName" placeholder="Driver Name">
                 </div>
-                <button type="submit">Create Driver</button>
-                <button type="button" class="secondary" onclick="fetchData('drivers')">Fetch All Drivers</button>
-                <div id="driverStatus" class="status"></div>
-            </form>
+                <div style="flex:1;">
+                    <label>License Number</label>
+                    <input type="text" id="dLicense" placeholder="License Number">
+                </div>
+                <div style="flex:1;">
+                    <label>Expiry Date (Future)</label>
+                    <input type="date" id="dExpiry">
+                </div>
+            </div>
+            <button onclick="doCreateDriver()">Create Driver</button>
+            <button class="fetch-btn" onclick="fetchData('drivers')">Fetch All Drivers</button>
+            <div id="driverStatus" class="status" style="display:none;"></div>
             <pre id="driverDisplay">// Driver data will appear here...</pre>
+        </div>
+
+        <div class="card" style="border: 2px solid #e74c3c;">
+            <h2>4. Manager Dashboard Alerts <span style="font-size:14px; background:red; color:white; padding:4px; border-radius:4px;">Wow Factor</span></h2>
+            <p>The system automatically runs a scheduled background task to scan for expiring licenses and generates alerts here.</p>
+            <button class="fetch-btn" onclick="fetchData('notifications')">Fetch Automated Alerts</button>
+            <pre id="notificationDisplay">// System alerts will appear here...</pre>
         </div>
     </div>
 
+    <div id="globalError" style="display:none; background:red; color:white; padding:20px; font-size:18px; position:fixed; top:0; left:0; width:100%; z-index:9999;"></div>
     <script>
+        // CRITICAL FIX: Kill any rogue React/PWA service workers intercepting requests on localhost!
+        try {
+            if (window.location.protocol !== 'file:' && 'serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                        registration.unregister();
+                        console.log("Unregistered rogue service worker:", registration);
+                    }
+                }).catch(e => console.log("SW check skipped:", e));
+            }
+        } catch (e) {}
+
+        window.onerror = function(message, source, lineno, colno, error) {
+            document.getElementById('globalError').style.display = 'block';
+            document.getElementById('globalError').innerText = 'GLOBAL JS ERROR: ' + message + ' at line ' + lineno;
+        };
+        window.addEventListener('unhandledrejection', function(event) {
+            document.getElementById('globalError').style.display = 'block';
+            document.getElementById('globalError').innerText = 'PROMISE ERROR: ' + event.reason;
+        });
+        
+        console.log("Script starting...");
         const API_BASE = 'http://localhost:5000/api';
 
         // Utility: Get auth headers
@@ -97,13 +134,13 @@
         const showStatus = (elementId, message, isSuccess) => {
             const el = document.getElementById(elementId);
             el.textContent = message;
+            el.style.display = 'block'; // FORCE VISIBLE!
             el.className = `status ${isSuccess ? 'success' : 'error'}`;
             setTimeout(() => { el.style.display = 'none'; }, 5000);
         };
 
         // 1. Handle Login
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        async function doLogin() {
             try {
                 const res = await fetch(`${API_BASE}/auth/login`, {
                     method: 'POST',
@@ -124,11 +161,10 @@
             } catch (err) {
                 showStatus('loginStatus', 'Error: ' + err.message, false);
             }
-        });
+        }
 
         // 2. Handle Vehicle Creation
-        document.getElementById('vehicleForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        async function doCreateVehicle() {
             try {
                 const payload = {
                     registrationNumber: document.getElementById('vReg').value,
@@ -149,16 +185,16 @@
                     showStatus('vehicleStatus', 'Vehicle created successfully!', true);
                     fetchData('vehicles'); // Auto-refresh list
                 } else {
-                    showStatus('vehicleStatus', data.error || JSON.stringify(data.details), false);
+                    const errorMsg = data.details ? `${data.error}: ${data.details.map(d => d.message).join(', ')}` : data.error;
+                    showStatus('vehicleStatus', errorMsg, false);
                 }
             } catch (err) {
                 showStatus('vehicleStatus', 'Error: ' + err.message, false);
             }
-        });
+        }
 
         // 3. Handle Driver Creation
-        document.getElementById('driverForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        async function doCreateDriver() {
             try {
                 // Ensure date string represents an ISO format time
                 const expiryDate = new Date(document.getElementById('dExpiry').value).toISOString();
@@ -180,16 +216,21 @@
                     showStatus('driverStatus', 'Driver created successfully!', true);
                     fetchData('drivers'); // Auto-refresh list
                 } else {
-                    showStatus('driverStatus', data.error || JSON.stringify(data.details), false);
+                    const errorMsg = data.details ? `${data.error}: ${data.details.map(d => d.message).join(', ')}` : data.error;
+                    showStatus('driverStatus', errorMsg, false);
                 }
             } catch (err) {
                 showStatus('driverStatus', 'Network error', false);
             }
-        });
+        }
 
         // Universal Data Fetcher
         async function fetchData(endpoint) {
-            const displayEl = document.getElementById(`${endpoint === 'vehicles' ? 'vehicle' : 'driver'}Display`);
+            let id = 'notificationDisplay';
+            if (endpoint === 'vehicles') id = 'vehicleDisplay';
+            if (endpoint === 'drivers') id = 'driverDisplay';
+            
+            const displayEl = document.getElementById(id);
             displayEl.textContent = 'Loading...';
             
             try {

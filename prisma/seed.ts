@@ -61,10 +61,14 @@ async function main() {
   const futureDate = new Date();
   futureDate.setFullYear(futureDate.getFullYear() + 2);
 
+  const expiringDate = new Date();
+  expiringDate.setDate(expiringDate.getDate() + 15); // Expires in 15 days!
+
   const drivers = [
     { name: 'John Doe', licenseNumber: 'DL-001', licenseExpiryDate: futureDate, status: 'Available' },
     { name: 'Jane Smith', licenseNumber: 'DL-002', licenseExpiryDate: futureDate, status: 'Available' },
     { name: 'Bob Johnson', licenseNumber: 'DL-003', licenseExpiryDate: futureDate, status: 'Available' },
+    { name: 'Alice Expiring', licenseNumber: 'DL-EXP', licenseExpiryDate: expiringDate, status: 'Available' },
   ];
 
   console.log('Seeding drivers...');

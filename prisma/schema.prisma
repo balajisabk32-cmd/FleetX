@@ -47,6 +47,15 @@ model Driver {
   licenseNumber     String   @unique
   licenseExpiryDate DateTime
   status            String   // Available, On Trip, Suspended
+  capabilityFlag    String   @default("Active") // Active, Expiring Soon, Expired
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  type      String   // e.g., "WARNING", "INFO"
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
