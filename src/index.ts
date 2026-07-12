@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
+import cookieParser from 'cookie-parser';
 
 import authRoutes from './routes/authRoutes';
 import vehicleRoutes from './routes/vehicleRoutes';
@@ -17,7 +18,8 @@ const PORT = process.env.PORT || 5000;
 
 // Security and Performance Middlewares
 app.use(helmet());
-app.use(cors());
+app.use(cors({ origin: true, credentials: true })); // allow credentials for cookies
+app.use(cookieParser());
 app.use(express.json());
 
 // Rate limiting for login route specifically disabled for testing

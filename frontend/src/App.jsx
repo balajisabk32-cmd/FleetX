@@ -42,7 +42,7 @@ function Navbar({ showIntro }) {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="text-white/70 hover:text-white">Login</Button>
+            <Button variant="ghost" size="sm" className="text-white/70 hover:text-white" onClick={() => { if(typeof navigate !== 'undefined') navigate('/auth'); else window.location.href='/auth'; }}>Login</Button>
             <Button size="sm" className="rounded-full">Get Started</Button>
           </div>
 
@@ -520,7 +520,72 @@ function Footer() {
   );
 }
 
-function App() {
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import AuthPage from './pages/auth/AuthPage';
+
+function LandingPage() {
+  const [showIntro, setShowIntro] = React.useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setShowIntro(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <AnimatePresence>
+        {showIntro && (
+          <motion.div
+            key="intro-screen"
+            className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center"
+            exit={{ opacity: 0, transition: { duration: 1, ease } }}
+          >
+            <div className="flex flex-col items-center justify-center w-full h-full">
+               <motion.img 
+                 layoutId="main-logo"
+                 src={LogoIcon} 
+                 alt="FleetX Logo" 
+                 initial={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
+                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                 transition={{ duration: 1.2, ease }}
+                 className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-2xl" 
+               />
+               <motion.div 
+                 initial={{ opacity: 0, y: 10 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 exit={{ opacity: 0, y: -10 }}
+                 transition={{ delay: 0.5, duration: 1, ease }}
+                 className="mt-8 text-3xl font-bold tracking-tighter"
+               >
+                 FleetX
+               </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <Navbar showIntro={showIntro} />
+      
+      <AnimatePresence>
+        {!showIntro && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 1.2, ease, delay: 0.3 }}
+            className="flex flex-col"
+          >
+            <Hero />
+            <ProblemSolution />
+            <RoleBasedFeatures />
+            <SmartAutomations />
+            <Analytics />
+            <Footer />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+function LandingPage() {
   const [showIntro, setShowIntro] = React.useState(true);
 
   React.useEffect(() => {
@@ -584,4 +649,17 @@ function App() {
   );
 }
 
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/dashboard" element={<div className="min-h-screen bg-background text-white flex items-center justify-center text-3xl font-bold tracking-tighter">Dashboard Coming Soon</div>} />
+    </Routes>
+  );
+}
+
 export default App;
+
