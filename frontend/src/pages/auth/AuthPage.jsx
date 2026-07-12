@@ -38,15 +38,24 @@ export default function AuthPage() {
     try {
       setLoading(true);
       setError('');
-      // In a real app, you send tokenResponse.access_token to the backend
-      // and backend uses google-auth-library to verify.
-      // For this hackathon UI demo, we will mock success and navigate to dashboard.
-      setTimeout(() => {
-        setLoading(false);
-        navigate('/dashboard'); // Assuming dashboard is next
-      }, 1000);
+      
+      const res = await fetch('http://localhost:5000/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ token: tokenResponse.access_token }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Google Authentication failed.');
+      }
+      
+      setLoading(false);
+      navigate('/dashboard');
     } catch (err) {
-      setError('Google Authentication failed.');
+      setError(err.message || 'Google Authentication failed.');
       setLoading(false);
     }
   };
@@ -56,7 +65,7 @@ export default function AuthPage() {
     onError: () => setError('Google Login Failed'),
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     
@@ -76,11 +85,32 @@ export default function AuthPage() {
     }
 
     setLoading(true);
-    // Mocking API call for bulletproof UI
-    setTimeout(() => {
+    
+    try {
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const body = isLogin 
+        ? { email: formData.email, password: formData.password }
+        : { name: formData.name, email: formData.email, password: formData.password, roleName: 'Viewer' };
+
+      const res = await fetch(`http://localhost:5000${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Authentication failed.');
+      }
+
       setLoading(false);
-      navigate('/dashboard'); // Proceed to dashboard
-    }, 1500);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Authentication failed.');
+      setLoading(false);
+    }
   };
 
   return (

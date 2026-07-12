@@ -74,9 +74,9 @@ export const register = async (req: Request, res: Response) => {
       message: 'User registered successfully',
       user: { id: newUser.id, name: newUser.name, email: newUser.email, role: role.name }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Internal server error during registration' });
+    res.status(500).json({ error: 'Internal server error during registration', details: error?.message || String(error) });
   }
 };
 

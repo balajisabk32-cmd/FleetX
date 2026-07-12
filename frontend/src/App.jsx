@@ -651,12 +651,20 @@ function LandingPage() {
 
 }
 
+import DashboardLayout from './pages/dashboard/DashboardLayout';
+import DashboardPage from './pages/dashboard/DashboardPage';
+
 function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/auth" element={<AuthPage />} />
-      <Route path="/dashboard" element={<div className="min-h-screen bg-background text-white flex items-center justify-center text-3xl font-bold tracking-tighter">Dashboard Coming Soon</div>} />
+      <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route index element={<DashboardPage />} />
+        <Route path="fleet" element={<div className="p-8">Fleet View Coming Soon</div>} />
+        <Route path="maintenance" element={<div className="p-8">Maintenance Coming Soon</div>} />
+        <Route path="personnel" element={<div className="p-8">Personnel Coming Soon</div>} />
+      </Route>
     </Routes>
   );
 }
