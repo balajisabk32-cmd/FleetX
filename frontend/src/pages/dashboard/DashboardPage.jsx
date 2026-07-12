@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -7,31 +7,78 @@ import {
   ArrowUpRight, GasPump, Wrench, ShieldCheck 
 } from '@phosphor-icons/react';
 import { Button } from '../../components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 gsap.registerPlugin(useGSAP);
 
 export default function DashboardPage() {
   const pageRef = useRef(null);
+  const navigate = useNavigate();
+  
+  const [vehicles, setVehicles] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [vehRes, notifRes] = await Promise.all([
+          fetch('http://localhost:5000/api/vehicles', { credentials: 'include' }),
+          fetch('http://localhost:5000/api/notifications', { credentials: 'include' })
+        ]);
+        
+        if (vehRes.ok) {
+          const vehData = await vehRes.json();
+          setVehicles(vehData);
+        }
+        
+        if (notifRes.ok) {
+          const notifData = await notifRes.json();
+          setNotifications(notifData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+
+  // Calculate Metrics
+  const totalVehicles = vehicles.length;
+  // Let's assume "Active" means not "In Shop"
+  const activeVehicles = vehicles.filter(v => v.status !== 'In Shop').length;
+  // Utilization = (On Trip / Total)
+  const onTripVehicles = vehicles.filter(v => v.status === 'On Trip').length;
+  const utilization = totalVehicles === 0 ? 0 : ((onTripVehicles / totalVehicles) * 100).toFixed(1);
 
   // Staggered Entry Animation for Bento Grid
   useGSAP(() => {
-    gsap.from('.bento-card', {
-      y: 60,
-      opacity: 0,
-      stagger: 0.1,
-      duration: 1.2,
-      ease: 'power3.out',
-      filter: 'blur(8px)',
-      delay: 0.2
-    });
-    
-    gsap.from('.dash-title', {
-      x: -30,
-      opacity: 0,
-      duration: 1,
-      ease: 'power3.out'
-    });
-  }, { scope: pageRef });
+    if (!loading) {
+      gsap.from('.bento-card', {
+        y: 60,
+        opacity: 0,
+        stagger: 0.1,
+        duration: 1.2,
+        ease: 'power3.out',
+        filter: 'blur(8px)',
+        delay: 0.1
+      });
+      
+      gsap.from('.dash-title', {
+        x: -30,
+        opacity: 0,
+        duration: 1,
+        ease: 'power3.out'
+      });
+    }
+  }, { scope: pageRef, dependencies: [loading] });
+
+  if (loading) {
+    return <div className="w-full h-full flex items-center justify-center text-white/50">Loading dashboard...</div>;
+  }
 
   return (
     <div ref={pageRef} className="w-full h-full flex flex-col">
@@ -103,7 +150,7 @@ export default function DashboardPage() {
 
         {/* Small Stat 1: Fleet Utilization (col-span-4) */}
         <div className="md:col-span-4 outer-shell bento-card">
-          <div className="inner-core h-full bg-[#050505] p-6 flex flex-col justify-between group cursor-pointer hover:bg-white/5 transition-colors">
+          <div className="inner-core h-full bg-[#050505] p-6 flex flex-col justify-between group cursor-pointer hover:bg-white/5 transition-colors" onClick={() => navigate('/dashboard/fleet')}>
             <div className="flex justify-between items-start mb-6">
               <div className="w-12 h-12 rounded-[14px] bg-success/10 border border-success/20 flex items-center justify-center">
                 <ChartLineUp size={24} className="text-success" />
@@ -114,14 +161,14 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm text-white/50 mb-1">Fleet Utilization</p>
-              <h3 className="text-3xl font-bold text-success">87.4%</h3>
+              <h3 className="text-3xl font-bold text-success">{utilization}%</h3>
             </div>
           </div>
         </div>
 
         {/* Small Stat 2: Active Vehicles (col-span-4) */}
         <div className="md:col-span-4 outer-shell bento-card">
-          <div className="inner-core h-full bg-[#050505] p-6 flex flex-col justify-between group cursor-pointer hover:bg-white/5 transition-colors">
+          <div className="inner-core h-full bg-[#050505] p-6 flex flex-col justify-between group cursor-pointer hover:bg-white/5 transition-colors" onClick={() => navigate('/dashboard/fleet')}>
             <div className="flex justify-between items-start mb-6">
               <div className="w-12 h-12 rounded-[14px] bg-white/5 border border-white/10 flex items-center justify-center">
                 <CarProfile size={24} className="text-white/80" />
@@ -132,7 +179,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm text-white/50 mb-1">Active Vehicles</p>
-              <h3 className="text-3xl font-bold text-white">142 <span className="text-lg text-white/30 font-normal">/ 160</span></h3>
+              <h3 className="text-3xl font-bold text-white">{activeVehicles} <span className="text-lg text-white/30 font-normal">/ {totalVehicles}</span></h3>
             </div>
           </div>
         </div>
@@ -142,36 +189,32 @@ export default function DashboardPage() {
           <div className="inner-core h-full bg-[#050505] p-6 flex flex-col relative overflow-hidden group">
             <div className="absolute right-0 top-0 w-32 h-32 bg-warning/10 blur-[50px]"></div>
             
-            <div className="flex items-center gap-3 mb-6 relative z-10">
-              <Warning size={24} className="text-warning" weight="duotone" />
-              <h3 className="text-xl font-bold">Maintenance Alerts</h3>
+            <div className="flex items-center justify-between gap-3 mb-6 relative z-10">
+              <div className="flex items-center gap-3">
+                <Warning size={24} className="text-warning" weight="duotone" />
+                <h3 className="text-xl font-bold">System Alerts</h3>
+              </div>
+              <span className="text-xs text-white/50">{notifications.length} Unread</span>
             </div>
             
             <div className="flex-1 overflow-y-auto space-y-3 relative z-10 pr-2 custom-scrollbar">
-              <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex justify-between items-center hover:bg-white/10 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-warning/20 flex items-center justify-center">
-                    <Wrench size={16} className="text-warning" />
+              {notifications.length === 0 ? (
+                <div className="text-white/40 text-sm h-full flex items-center justify-center">No active alerts.</div>
+              ) : (
+                notifications.map((notif) => (
+                  <div key={notif.id} className="bg-white/5 border border-white/10 rounded-xl p-3 flex justify-between items-center hover:bg-white/10 transition-colors">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${notif.type === 'CRITICAL' ? 'bg-danger/20 text-danger' : notif.type === 'WARNING' ? 'bg-warning/20 text-warning' : 'bg-primary/20 text-primary'}`}>
+                        {notif.type === 'CRITICAL' ? <ShieldCheck size={16} /> : <Wrench size={16} />}
+                      </div>
+                      <div className="truncate pr-4">
+                        <p className="text-sm font-medium truncate">{notif.type}</p>
+                        <p className="text-xs text-white/60 truncate">{notif.message}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">FX-7042 (Sprinter)</p>
-                    <p className="text-xs text-white/40">Engine Oil Temp High</p>
-                  </div>
-                </div>
-                <Button size="sm" variant="ghost" className="h-8 text-xs">Schedule</Button>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex justify-between items-center hover:bg-white/10 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-danger/20 flex items-center justify-center">
-                    <ShieldCheck size={16} className="text-danger" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">John D. (Driver)</p>
-                    <p className="text-xs text-danger/80">License Expires in 5 Days</p>
-                  </div>
-                </div>
-                <Button size="sm" variant="ghost" className="h-8 text-xs">Review</Button>
-              </div>
+                ))
+              )}
             </div>
           </div>
         </div>

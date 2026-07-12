@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { SquaresFour, CarProfile, Wrench, Users, SignOut, ShieldCheck } from '@phosphor-icons/react';
+import { SquaresFour, CarProfile, Wrench, Users, SignOut, MapTrifold } from '@phosphor-icons/react';
 import LogoIcon from '../../assets/logo.svg';
 
 gsap.registerPlugin(useGSAP);
@@ -28,6 +28,7 @@ export default function DashboardLayout() {
   const navLinks = [
     { name: 'Overview', path: '/dashboard', icon: <SquaresFour size={24} /> },
     { name: 'Fleet', path: '/dashboard/fleet', icon: <CarProfile size={24} /> },
+    { name: 'Trips', path: '/dashboard/trips', icon: <MapTrifold size={24} /> },
     { name: 'Maintenance', path: '/dashboard/maintenance', icon: <Wrench size={24} /> },
     { name: 'Personnel', path: '/dashboard/personnel', icon: <Users size={24} /> },
   ];

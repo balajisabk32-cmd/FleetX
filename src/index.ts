@@ -11,6 +11,8 @@ import vehicleRoutes from './routes/vehicleRoutes';
 import driverRoutes from './routes/driverRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import documentRoutes from './routes/documentRoutes';
+import tripRoutes from './routes/tripRoutes';
+import maintenanceRoutes from './routes/maintenanceRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import { initCronJobs } from './services/cronService';
 
@@ -43,6 +45,8 @@ app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/trips', tripRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 
 // Simple Health Check
 app.get('/api/health', (req, res) => {
@@ -57,6 +61,9 @@ app.get('/', (req, res) => {
   res.setHeader('Surrogate-Control', 'no-store');
   res.sendFile(path.join(__dirname, '../index.html'));
 });
+
+// Serve the public directory for sub-modules
+app.use('/public', express.static(path.join(__dirname, '../public')));
 
 // Global Error Handler
 app.use(errorHandler);

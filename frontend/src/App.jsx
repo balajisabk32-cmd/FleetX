@@ -653,6 +653,8 @@ function LandingPage() {
 
 import DashboardLayout from './pages/dashboard/DashboardLayout';
 import DashboardPage from './pages/dashboard/DashboardPage';
+import TripsPage from './pages/dashboard/TripsPage';
+import MaintenancePage from './pages/dashboard/MaintenancePage';
 
 function App() {
   return (
@@ -662,7 +664,8 @@ function App() {
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<DashboardPage />} />
         <Route path="fleet" element={<div className="p-8">Fleet View Coming Soon</div>} />
-        <Route path="maintenance" element={<div className="p-8">Maintenance Coming Soon</div>} />
+        <Route path="trips" element={<TripsPage />} />
+        <Route path="maintenance" element={<MaintenancePage />} />
         <Route path="personnel" element={<div className="p-8">Personnel Coming Soon</div>} />
       </Route>
     </Routes>
